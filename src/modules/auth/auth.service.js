@@ -1,5 +1,5 @@
 import { ProviderEnum } from "../../common/enums/index.js";
-import { userModel, findOne, createOne, toVerifyEmail } from "../../DB/index.js";
+import { userModel, findOne, createOne, toVerifyEmail, toResendOtp } from "../../DB/index.js";
 import {conflictException,notFoundException} from "./../../common/utils/response/index.js";
 import { compareHash, decrypt, encrypt, generateHash } from "../../common/utils/security/index.js";
 import {generateOTP, sendOTPEmail} from "../../common/utils/security/index.js";
@@ -50,6 +50,14 @@ export const verifyEmail = async (inputs) => {
   return user;
 };
 
+// ----------------------------Resend OTP--------------------------------
+
+export const resendOtp = async (inputs) => {
+  const { email } = inputs;
+  const user = await toResendOtp( email );
+  return user;
+};
+
 // -----------------------------Login-------------------------------
 
 export const login = async (inputs) => {
@@ -61,6 +69,9 @@ export const login = async (inputs) => {
     });
   if (!user) {
     return notFoundException("Invalid login credentials");
+  }
+  if (!user.isVerified) {
+    return notFoundException("Please verify your email first");
   }
   const matched = await compareHash(password, user.password);
   if (!matched) {

@@ -1,4 +1,4 @@
-import { compareHash } from "../common/utils/index.js";
+import { compareHash, generateHash, generateOTP, sendOTPEmail } from "../common/utils/index.js";
 import { userModel } from "./model/index.js";
 
 // -----------------------------find----------------------------------
@@ -219,5 +219,28 @@ export const toVerifyEmail = async (inputs) => {
   return user;
 };
 
+// ----------------------------Resend OTP--------------------------------
+
+export const toResendOtp = async (email) => {
+  const user = await findOne({
+    model: userModel,
+    filter: { email },
+    select: "email",
+    options: {
+      lean: true,
+    },
+  });
+  if (!user) {
+    return notFoundException("Email not found");
+  }
+  const otp = generateOTP();
+  const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
+  await userModel.updateOne({
+    otpCode: await generateHash(otp),
+    otpExpiresAt: expiresAt,
+  });
+  await sendOTPEmail(email, otp);
+  return user;
+};
 
 
