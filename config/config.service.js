@@ -1,5 +1,6 @@
 import { resolve } from 'node:path'
 import { config } from 'dotenv'
+import { log } from 'node:console';
 
 export const NODE_ENV = process.env.NODE_ENV
 
@@ -25,7 +26,15 @@ export const EMAIL_USER = process.env.EMAIL_USER
 export const EMAIL_PASS = process.env.EMAIL_PASS
 
 // JWT
-// export const JWT_SECRET = process.env.JWT_SECRET ?? 'default_jwt_secret'
+export const System_JWT_SECRET = process.env.System_JWT_SECRET;
+export const System_REFRESH_JWT_SECRET = process.env.System_REFRESH_JWT_SECRET;
+export const User_JWT_SECRET = process.env.User_JWT_SECRET
+export const User_REFRESH_JWT_SECRET = process.env.User_REFRESH_JWT_SECRET
+
+export const ACCESS_TOKEN_EXPIRY = parseInt(process.env.ACCESS_EXPIRES_IN) 
+export const REFRESH_TOKEN_EXPIRY = parseInt(process.env.REFRESH_EXPIRES_IN) 
+
+export const WEB_CLIENT_ID = process.env.WEB_CLIENT_ID
 
 
 

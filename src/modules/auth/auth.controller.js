@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import {  login, resendOtp, signup, verifyEmail } from './auth.service.js';
+import {  login, loginGmail, resendOtp, signup, signupGmail, verifyEmail } from './auth.service.js';
 import { successResponse } from '../../common/utils/response/success.respone.js';
 import { loginLimiter, otpLimiter } from '../../middleware/index.js';
 const router = Router(); 
@@ -17,11 +17,22 @@ router.post("/resend-otp",otpLimiter, async (req, res, next) => {
     return successResponse(res, 201, { account },"A new OTP has been sent to your email");
 })
 
-router.post("/login",loginLimiter, async (req, res, next) => {
-    const account = await login(req.body)    
-    return successResponse(res, 200, { account });
+router.post("/login", loginLimiter, async (req, res, next) => {
+    const tokens = await login(req.body , `${req.protocol}://${req.host}`)    
+    return successResponse(res, 200, { tokens });
 })
 
+router.post("/signup/gmail", async (req, res, next) => {
+    console.log(req.body);
+    const {account , status} = await signupGmail(req.body.idToken, `${req.protocol}://${req.host}`)
+    return successResponse(res, status, { account });
+})
+
+router.post("/login/gmail", async (req, res, next) => {
+    console.log(req.body);
+    const account = await loginGmail(req.body, `${req.protocol}://${req.host}`)
+    return successResponse(res, 201, { account });
+})
 
 
 export default router

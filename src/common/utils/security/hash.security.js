@@ -8,3 +8,8 @@ export const generateHash = async (plaintext, salt = SALT_ROUND) => {
 export const compareHash = async (plaintext, cipherText) => {
   return await compare(plaintext, cipherText);
 };
+
+
+
+
+

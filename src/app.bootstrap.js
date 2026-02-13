@@ -1,14 +1,16 @@
 
 import { NODE_ENV, port } from '../config/config.service.js'
-import { golbalErrorHandeling } from './common/utils/response/index.js'
+import { globalErrorHandling } from './common/utils/response/index.js'
 import { connectDB } from './DB/index.js'
 import { authRouter, userRouter } from './modules/index.js'
 import express from 'express'
+import cors from 'cors'
 
 async function bootstrap() {
     const app = express()
     //convert buffer data
-    app.use(express.json())
+    app.use(cors(),express.json())
+    
 
     // DB
     await connectDB()
@@ -25,7 +27,7 @@ async function bootstrap() {
     })
 
     //global error handling
-    app.use(golbalErrorHandeling)
+    app.use(globalErrorHandling)
     
     app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 }

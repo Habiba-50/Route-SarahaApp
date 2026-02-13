@@ -1,7 +1,7 @@
 import { NODE_ENV } from "../../../../config/config.service.js";
 
 // Fixed error structure for global error handling
-export const golbalErrorHandeling = (error, req, res, next) => {
+export const globalErrorHandling = (error, req, res, next) => {
   const status = error.cause?.status ?? 500;
   const mood = NODE_ENV == "production";
   const defaultErrorMessage = "something went wrong Server error";

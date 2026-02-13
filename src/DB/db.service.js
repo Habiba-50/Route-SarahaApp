@@ -31,7 +31,7 @@ export const find = async ({
 
 // -----------------------------findById----------------------------------
 
-export const findById = async ({ id, options, select = {}, model }) => {
+export const findById = async ({ id, options= {}, select = {}, model }) => {
   const doc = model.findById(id).select(select || "");
 
   if (options.populate) {
@@ -234,7 +234,7 @@ export const toResendOtp = async (email) => {
     return notFoundException("Email not found");
   }
   const otp = generateOTP();
-  const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
   await userModel.updateOne({
     otpCode: await generateHash(otp),
     otpExpiresAt: expiresAt,

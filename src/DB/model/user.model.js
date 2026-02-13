@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { GenderEnum, ProviderEnum } from "../../common/enums/index.js";
+import { GenderEnum, ProviderEnum, RoleEnum } from "../../common/enums/index.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,7 +22,9 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.provider == ProviderEnum.System
+      }
     },
 
     phone: String,
@@ -41,6 +43,12 @@ const userSchema = new mongoose.Schema(
       default: ProviderEnum.System,
     },
 
+    role: {
+      type: Number,
+      enum: Object.values(RoleEnum),
+      default: RoleEnum.User,
+    },
+
     profilePic: String,
 
     confirmEmail: Date,
@@ -55,7 +63,7 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
     strictQuery: true,
     toJSON: { virtuals: true },
-    toObject:{virtuals:true}
+    toObject: { virtuals: true },
   },
 );
 

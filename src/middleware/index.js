@@ -1,2 +1,2 @@
-export * from "./rateLimiter.js";
-// export * from "./auth.middleware.js";
+export * from "./rateLimiter.middleware.js";
+export * from "./authentication.middleware.js"; 
