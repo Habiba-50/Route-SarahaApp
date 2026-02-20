@@ -39,3 +39,13 @@ export const rotateToken = async (user, issuer) => {
 
   return {access_token}
 };
+
+
+export const AddProfileImage = async (user, file) => {
+  const image = file.path;
+  console.log(image);
+    const updatedUser = await userModel.findByIdAndUpdate(user._id, { profilePic: image });
+    return updatedUser;
+}
+
+

@@ -10,6 +10,7 @@ export const globalErrorHandling = (error, req, res, next) => {
     status,
       stack: mood ? undefined : error.stack,
       errorMessage: mood ? (status == 500 ? defaultErrorMessage : undefined) : displayErrorMessage,
+      extra: error.cause?.extra
   });
 };
 

@@ -1,5 +1,5 @@
 import { TokenTypeEnum } from "../common/enums/security.enum.js"
-import { forbiddenException } from "../common/utils/index.js"
+import { badRequestException, forbiddenException } from "../common/utils/index.js"
 import { decodeToken } from "../common/utils/security/token.security.js"
 
 
@@ -8,7 +8,7 @@ export const authentication = (tokenType = TokenTypeEnum.ACCESS) => {
     return async (req, res, next) => {
         
          if(!req?.headers?.authorization){
-        throw badRequestException("Authorization header is required")
+        throw badRequestException({message:"Authorization header is required"})
     }
         const user = await decodeToken(req.headers?.authorization, [tokenType])
         req.user = user
