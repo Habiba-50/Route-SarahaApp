@@ -8,9 +8,9 @@ export const globalErrorHandling = (error, req, res, next) => {
   const displayErrorMessage = error.message || defaultErrorMessage;
   return res.status(status).json({
     status,
-      stack: mood ? undefined : error.stack,
-      errorMessage: mood ? (status == 500 ? defaultErrorMessage : undefined) : displayErrorMessage,
-      extra: error.cause?.extra
+    errorMessage: mood ? (status == 500 ? defaultErrorMessage : undefined) : displayErrorMessage,
+    extra: error.cause?.extra,
+    stack: mood ? undefined : error.stack,
   });
 };
 

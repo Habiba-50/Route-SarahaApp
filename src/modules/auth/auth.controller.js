@@ -7,7 +7,7 @@ import { badRequestException } from '../../common/utils/index.js';
 
 const router = Router(); 
 
-router.post("/signup/:lang", otpLimiter,validation( validators.signup), async (req, res, next) => {
+router.post("/signup", otpLimiter,validation( validators.signup), async (req, res, next) => {
     const account = await signup(req.body)
     return successResponse(res, 201, { account });
 })

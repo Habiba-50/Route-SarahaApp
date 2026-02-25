@@ -1,5 +1,5 @@
 
-import { NODE_ENV, port } from '../config/config.service.js'
+import { port } from '../config/config.service.js'
 import { globalErrorHandling } from './common/utils/response/index.js'
 import { connectDB } from './DB/index.js'
 import { authRouter, userRouter } from './modules/index.js'

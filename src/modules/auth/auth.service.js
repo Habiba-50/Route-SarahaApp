@@ -19,7 +19,7 @@ export const signup = async (inputs) => {
       lean: true,
     },
   });
-  console.log(checkUserExise);
+  // console.log(checkUserExise);
 
   if (checkUserExise) {
     return conflictException("Email already exists");
@@ -86,7 +86,7 @@ export const signupGmail = async (idToken, issuer) => {
 
   const payload = await verifyGoogleAccount(idToken)
 
-  console.log(payload);
+  // console.log(payload);
 
   const checkUser = await findOne({
     model: userModel,
@@ -117,7 +117,7 @@ export const signupGmail = async (idToken, issuer) => {
       confirmEmail: new Date()
     }],
   });
-  console.log(newUser);
+  // console.log(newUser);
 
   return await createLoginCredentials({ user: newUser, issuer });
 };

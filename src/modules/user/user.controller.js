@@ -1,16 +1,27 @@
 import { Router } from "express";
-import { profile, rotateToken, AddProfileImage } from "./user.service.js";
+import {  rotateToken, AddProfileImage, shareProfile } from "./user.service.js";
 import { authentication, authorization } from "../../middleware/authentication.middleware.js";
 import { successResponse } from "../../common/utils/response/success.respone.js";
 import { RoleEnum } from "../../common/enums/user.enum.js";
 import { TokenTypeEnum } from "../../common/enums/security.enum.js";
-import { uploadSingleFile } from "../../middleware/upload.middleware.js";
+import { validation } from "../../middleware/validation.middleware.js";
+import * as validators from "./user.validation.js"
+import { localFileUpload } from "../../common/utils/multer/index.js";
+
     const router=Router()
 
-router.get("/profile" ,authentication(), authorization([RoleEnum.User]), async (req,res,next)=>{
-    const result = await profile(req.user)
+// router.get("/" ,authentication(), authorization([RoleEnum.User]), async (req,res,next)=>{
+//     const result = await profile(req.user)
     
-    return successResponse(res, 200, { result })
+//     return successResponse(res, 200, { result })
+// })
+
+
+router.get("{/:userId/share-profile}",
+    authentication(), authorization([RoleEnum.User, RoleEnum.Admin]),
+    validation(validators.shareProfile), async (req, res, next) => {
+       const result = await shareProfile(req.user, req.params.userId)
+       return successResponse(res, 200, { result })
 })
 
 router.get("/rotate-token" ,authentication(TokenTypeEnum.REFRESH), authorization([RoleEnum.User]), async (req,res,next)=>{
@@ -20,7 +31,7 @@ router.get("/rotate-token" ,authentication(TokenTypeEnum.REFRESH), authorization
 })
 
 
-router.patch("/profile/image", authentication(), authorization([RoleEnum.User]), uploadSingleFile.single("image"), async (req, res, next) => {
+router.patch("/profile-image", authentication(), authorization([RoleEnum.User]), localFileUpload.single("attachement"), async (req, res, next) => {
     const result = await AddProfileImage(req.user, req.file);
     return successResponse(res, 200, { result });
 });

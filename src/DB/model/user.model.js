@@ -69,14 +69,17 @@ const userSchema = new mongoose.Schema(
 
 userSchema
   .virtual("userName")
+  .get(function () {
+    if (!this.firstName && !this.lastName) return undefined
+    return `${this.firstName} ${this.lastName}`;
+  })
   .set(function (value) {
     const [firstName, lastName] = value.split(" ") || [];
     this.firstName = firstName;
     this.lastName = lastName;
   })
-  .get(function () {
-    return this.firstName + " " + this.lastName;
-  });
+  
+
 
 export const userModel =
   mongoose.models.User || mongoose.model("User", userSchema);

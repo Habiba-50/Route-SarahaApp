@@ -1,22 +1,92 @@
+import { Types } from "mongoose";
 import { ACCESS_TOKEN_EXPIRY } from "../../../config/config.service.js"
 import { AudienceEnum, TokenTypeEnum } from "../../common/enums/security.enum.js";
-import { createLoginCredentials, generateToken, getTokenSignature } from "../../common/utils/index.js";
-import { findById } from "../../DB/db.service.js";
-import { userModel } from "../../DB/index.js";
+import { badRequestException, createLoginCredentials, decrypt, generateToken, getTokenSignature, notFoundException } from "../../common/utils/index.js";
+import { createOne, find, findById, findOne } from "../../DB/db.service.js";
+import { userModel, profileViewModel } from "../../DB/index.js";
+import { RoleEnum } from "../../common/enums/user.enum.js";
 
-export const profile = async (user) => {
-  // const user = await decodeToken(authorization, [TokenTypeEnum.ACCESS])
+// export const profile = async (user) => {
   
-  // const verifyData = await verifyToken(authorization , signature)
 
-  // console.log({ verifyData });
+  
 
-  // const user = await findById({
-  //   model: userModel,
-  //   id: verifyData.sub,
+//   if(user.phone){
+//     user.phone = await decrypt(user.phone);
+//   }
+  
+//   return user;
+// };
+
+
+
+export const shareProfile = async (viewer, userId) => {
+
+  const id = userId ?? viewer._id
+  const profile = await findOne({
+    model: userModel,
+    filter: {_id: id},
+    select: "firstName lastName email phone",
+    options:{lean:true}
+    
+  });
+
+  if(profile.phone){
+    profile.phone = await decrypt(profile.phone);
+  }
+  
+  if(!profile){
+    throw notFoundException("User not found");
+  }
+
+
+  const viewerId = viewer._id
+  const profileId = userId
+
+  //   const checkViewer = await findOne({
+  //   model: profileViewModel,
+  //   filter: {viewerId: viewerId, profileId: profileId},
   // });
+
+  // ====== Index
+
+
+  if (viewerId !== profileId) {
+    try {
+      const profileViews = await createOne({
+        model: profileViewModel,
+        data: [{viewerId: viewerId, profileId: profileId}],
+      });
+    } catch (error) {
+      return true 
+    }
+    
+  }
   
-  return user;
+  if (!userId || viewerId === profileId) {
+    const countViewers = await profileViewModel.countDocuments({profileId: profileId})
+    profile.views = countViewers
+    return profile;
+  }
+
+  if(viewer.role === RoleEnum.Admin){
+    const viewers = await find({
+      model: profileViewModel,
+      filter: { profileId: profileId },
+      select: "viewerId",
+      options: {
+        populate: { path: "viewerId", select: "username email phone" },
+        lean: true
+      }
+    })
+    viewers.map(async viewer => {
+      viewer.viewerId.phone = await decrypt(viewer.viewerId.phone)
+    })
+    profile.views = viewers
+    return profile;
+  }
+
+  return profile;
 };
 
 
@@ -43,7 +113,7 @@ export const rotateToken = async (user, issuer) => {
 
 export const AddProfileImage = async (user, file) => {
   const image = file.path;
-  console.log(image);
+  // console.log(image);
     const updatedUser = await userModel.findByIdAndUpdate(user._id, { profilePic: image });
     return updatedUser;
 }

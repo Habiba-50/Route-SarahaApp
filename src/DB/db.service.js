@@ -31,7 +31,7 @@ export const find = async ({
 
 // -----------------------------findById----------------------------------
 
-export const findById = async ({ id, options= {}, select = {}, model }) => {
+export const findById = async ({ id, options= {}, select = "", model }) => {
   const doc = model.findById(id).select(select || "");
 
   if (options.populate) {
@@ -49,7 +49,7 @@ export const findById = async ({ id, options= {}, select = {}, model }) => {
 
 export const findOne = async ({
   model,
-  select = " ",
+  select = "",
   filter = {},
   options = {},
 } = {}) => {

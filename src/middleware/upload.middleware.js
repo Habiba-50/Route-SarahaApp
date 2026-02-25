@@ -12,7 +12,6 @@ const uploadPath = path.resolve("uploads");
 fs.mkdirSync(uploadPath, { recursive: true });
 
 
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -37,5 +36,9 @@ const fileFilter = (req, file, cb) => {
 export const uploadSingleFile = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, 
+   limits: { fileSize: 5 * 1024 * 1024 }, 
+  // 1 KB => 1024 Byte
+  // 1 MB => 1024 KB
+  // 1024 * 1024 = 1MB
+  // image size will be 5MB
 });
