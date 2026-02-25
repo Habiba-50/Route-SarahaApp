@@ -1,7 +1,7 @@
 import { ACCESS_TOKEN_EXPIRY } from "../../../config/config.service.js"
 import { AudienceEnum, TokenTypeEnum } from "../../common/enums/security.enum.js";
-import { createLoginCredentials, generateToken, getTokenSignature } from "../../common/utils/index.js";
-import { findById } from "../../DB/db.service.js";
+import { createLoginCredentials, decrypt, generateToken, getTokenSignature } from "../../common/utils/index.js";
+import { findById, findOne } from "../../DB/db.service.js";
 import { userModel } from "../../DB/index.js";
 
 export const profile = async (user) => {
@@ -17,6 +17,25 @@ export const profile = async (user) => {
   // });
   
   return user;
+};
+
+
+export const shareProfile = async (userId) => {
+  
+  const profile = await findOne({
+    model: userModel,
+    filter: {_id: userId},
+    select: "firstName lastName email phone profilePic"
+  });
+  // console.log(profile.userName);
+  
+  if(!profile){
+    throw notFoundException("User not found");
+  }
+  if(profile.phone){
+    profile.phone = await decrypt(profile.phone);
+  }
+  return profile;
 };
 
 

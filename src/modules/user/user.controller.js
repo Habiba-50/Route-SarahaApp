@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { profile, rotateToken, AddProfileImage } from "./user.service.js";
+import { profile, rotateToken, AddProfileImage, shareProfile } from "./user.service.js";
 import { authentication, authorization } from "../../middleware/authentication.middleware.js";
 import { successResponse } from "../../common/utils/response/success.respone.js";
 import { RoleEnum } from "../../common/enums/user.enum.js";
@@ -9,6 +9,12 @@ import { uploadSingleFile } from "../../middleware/upload.middleware.js";
 
 router.get("/profile" ,authentication(), authorization([RoleEnum.User]), async (req,res,next)=>{
     const result = await profile(req.user)
+    
+    return successResponse(res, 200, { result })
+})
+
+router.get("/:userId/share-profile" , async (req,res,next)=>{
+    const result = await shareProfile(req.params.userId)
     
     return successResponse(res, 200, { result })
 })
