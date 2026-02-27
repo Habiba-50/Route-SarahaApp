@@ -5,17 +5,7 @@ import { findById, findOne } from "../../DB/db.service.js";
 import { userModel } from "../../DB/index.js";
 
 export const profile = async (user) => {
-  // const user = await decodeToken(authorization, [TokenTypeEnum.ACCESS])
-  
-  // const verifyData = await verifyToken(authorization , signature)
 
-  // console.log({ verifyData });
-
-  // const user = await findById({
-  //   model: userModel,
-  //   id: verifyData.sub,
-  // });
-  
   return user;
 };
 
@@ -60,11 +50,11 @@ export const rotateToken = async (user, issuer) => {
 };
 
 
-export const AddProfileImage = async (user, file) => {
-  const image = file.path;
-  console.log(image);
-    const updatedUser = await userModel.findByIdAndUpdate(user._id, { profilePic: image });
-    return updatedUser;
-}
+// export const AddProfileImage = async (user, file) => {
+//   const image = file.path;
+//   console.log(image);
+//     const updatedUser = await userModel.findByIdAndUpdate(user._id, { profilePic: image });
+//     return updatedUser;
+// }
 
 

@@ -9,7 +9,8 @@ import cors from 'cors'
 async function bootstrap() {
     const app = express()
     //convert buffer data
-    app.use(cors(),express.json())
+    app.use(cors(), express.json())
+    
     
 
     // DB
