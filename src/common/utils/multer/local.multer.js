@@ -1,10 +1,44 @@
-import multer from "multer"
+import multer from "multer";
+import { resolve } from "node:path";
+import { randomUUID } from "node:crypto";
+import { existsSync, mkdirSync } from "node:fs";
+import { fileFilter } from "./validation.multer.js";
 
+export const localFileUpload = ({
+  customPath = "general",
+  validation = [],
+  maxSize = 5  // 5MB
 
-export const localFileUpload = () => {
-    
-    return multer({dest:"/temp"})
-}
+} = {}) => {
+
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const fullPath = resolve(`../uploads/${customPath}`)
+      if (!existsSync(fullPath)) {
+        mkdirSync(fullPath , {recursive:true})
+      }
+      cb(null, resolve(fullPath));
+    },
+
+    filename: function (req, file, cb) {
+      const uniqueName = randomUUID() + "-" + file.originalname;
+      file.finalPath = `uploads/${customPath}/${uniqueName}`
+      cb(null, uniqueName);
+      // file.originalname => name of the file on the user's computer + extension
+    },
+  });
+  
+  return multer({
+    fileFilter: fileFilter(validation),
+    storage,
+    limits: {
+      fileSize: maxSize * 1024 * 1024  // bytes
+    } 
+   });
+};
+
+// 5 mg * 1024 => kb 
+// 5 mg * 1024 * 1024 => bytes
 
 // const uploadPath = path.resolve("uploads");
 
@@ -13,8 +47,6 @@ export const localFileUpload = () => {
 // // }
 
 // fs.mkdirSync(uploadPath, { recursive: true });
-
-
 
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
@@ -25,7 +57,6 @@ export const localFileUpload = () => {
 //     cb(null, uniqueName);
 //   },
 // });
-
 
 // const fileFilter = (req, file, cb) => {
 //   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -40,5 +71,5 @@ export const localFileUpload = () => {
 // export const uploadSingleFile = multer({
 //   storage,
 //   fileFilter,
-//   limits: { fileSize: 5 * 1024 * 1024 }, 
+//   limits: { fileSize: 5 * 1024 * 1024 },
 // });

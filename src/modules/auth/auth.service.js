@@ -10,7 +10,7 @@ import {OAuth2Client} from 'google-auth-library';
 
 export const signup = async (inputs) => {
   const { userName, email, password , phone } = inputs;
-  const checkUserExise = await findOne({
+  const checkUserExist = await findOne({
     model: userModel,
     filter: { email },
     select: "email",
@@ -19,9 +19,9 @@ export const signup = async (inputs) => {
       lean: true,
     },
   });
-  console.log(checkUserExise);
+  console.log(checkUserExist);
 
-  if (checkUserExise) {
+  if (checkUserExist) {
     return conflictException("Email already exists");
   }
 
@@ -34,7 +34,7 @@ export const signup = async (inputs) => {
       userName,
       email,
       password: await generateHash(password),
-      phone: await encrypt(phone),
+      phone: encrypt(phone),
       provider: ProviderEnum.System,
       otpCode: await generateHash(otp),
       otpExpiresAt: expiresAt,

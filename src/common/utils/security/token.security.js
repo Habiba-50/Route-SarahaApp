@@ -2,10 +2,10 @@ import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY, System_JWT_SECRET, System_REFRESH_JWT_SECRET, User_JWT_SECRET, User_REFRESH_JWT_SECRET } from "../../../../config/config.service.js";
 import { RoleEnum } from "../../enums/index.js";
 import { AudienceEnum, TokenTypeEnum } from "../../enums/security.enum.js";
-import { badRequestException } from "../response/error.response.js";
-import { findById } from "../../../DB/db.service.js";
-import { userModel } from "../../../DB/index.js";
-
+import { badRequestException, notFoundException, unauthorizedException } from "../response/error.response.js";
+import { findById, findOne } from "../../../DB/db.service.js";
+import { tokenModel, userModel } from "../../../DB/index.js";
+import {randomUUID} from "node:crypto"
 
 export const generateToken = async ({
     payload = {},
@@ -42,15 +42,18 @@ export const getTokenSignature = async (role) => {
 export const  createLoginCredentials = async ({ user, issuer }) => {
   const { accessSignature, refreshSignature, audience } = await getTokenSignature(user.role);
 
+  const jwtId = randomUUID();
+
   const access_token = await generateToken({
     payload: { sub: user._id },
     signature: accessSignature,
     options: {
       issuer,
       audience: [TokenTypeEnum.ACCESS, audience],
-      expiresIn: ACCESS_TOKEN_EXPIRY
-    }
-  })
+      expiresIn: ACCESS_TOKEN_EXPIRY,
+      jwtid: jwtId,
+    },
+  });
 
   const refresh_token = await generateToken({
     payload: { sub: user._id },
@@ -58,7 +61,8 @@ export const  createLoginCredentials = async ({ user, issuer }) => {
     options: {
       issuer,
       audience: [TokenTypeEnum.REFRESH, audience],
-      expiresIn: REFRESH_TOKEN_EXPIRY
+      expiresIn: REFRESH_TOKEN_EXPIRY,
+      jwtid:jwtId,
     }
   })
   
@@ -71,7 +75,7 @@ export const  createLoginCredentials = async ({ user, issuer }) => {
 export const decodeToken = async (token, allowedTokenType = []) => {
 
   const decoded = jwt.decode(token);
-  console.log({ decoded });
+  // console.log({ decoded });
   
   if (!decoded?.aud?.length) {
     throw badRequestException({message: "fail to decode token, aud is required"})
@@ -89,9 +93,12 @@ export const decodeToken = async (token, allowedTokenType = []) => {
   }
 
   if (allowedTokenType.length && !allowedTokenType.includes(tokenType)) {
-    throw badRequestException({message: "Invalid token type"})
+    throw notFoundException( "Invalid token type")
   }
 
+  if (decoded.jti && await findOne({ model: tokenModel, filter: { jti: decoded.jti } })) {
+    throw unauthorizedException({message: "Invalid login session"})
+  }
   let signature = undefined;
   
   switch (tokenType) {
@@ -106,7 +113,7 @@ export const decodeToken = async (token, allowedTokenType = []) => {
       
   const verifyData = await verifyToken(token , signature)
   
-  console.log({ verifyData });
+  // console.log({ verifyData });
   
   const user = await findById({
     model: userModel,
@@ -117,7 +124,15 @@ export const decodeToken = async (token, allowedTokenType = []) => {
     throw notFoundException("No registered account found");
   }
   
-    return user;
+  // console.log({changeCredentialsTime : user.changeCredentialsTime.getTime() , iat : decoded.iat * 1000});
+  
+  if (
+    user.changeCredentialsTime &&
+    user.changeCredentialsTime?.getTime() > decoded.iat * 1000) {
+    throw unauthorizedException("Invalid login session");
+  }
+
+    return {user,decoded};
 
 }
 

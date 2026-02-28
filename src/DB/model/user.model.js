@@ -49,9 +49,14 @@ const userSchema = new mongoose.Schema(
       default: RoleEnum.User,
     },
 
-    profilePic: String,
+    profilePic: [String],
+    profileCoverPic: [String],
+
+    gallery: [ String ],
 
     confirmEmail: Date,
+
+    changeCredentialsTime:Date,
 
     isVerified: { type: Boolean, default: false },
     otpCode: String,

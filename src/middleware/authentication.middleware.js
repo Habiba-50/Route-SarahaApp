@@ -10,8 +10,9 @@ export const authentication = (tokenType = TokenTypeEnum.ACCESS) => {
          if(!req?.headers?.authorization){
         throw badRequestException({message:"Authorization header is required"})
     }
-        const user = await decodeToken(req.headers?.authorization, [tokenType])
+        const {user , decoded} = await decodeToken(req.headers?.authorization, [tokenType])
         req.user = user
+        req.decoded = decoded
         next()
     }
 }
