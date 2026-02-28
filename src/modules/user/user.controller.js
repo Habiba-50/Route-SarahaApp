@@ -6,7 +6,7 @@ import { RoleEnum } from "../../common/enums/user.enum.js";
 import { TokenTypeEnum } from "../../common/enums/security.enum.js";
 import { validation } from "../../middleware/validation.middleware.js";
 import * as validators from "./user.validation.js"
-import { localFileUpload } from "../../common/utils/multer/index.js";
+// import { localFileUpload } from "../../common/utils/multer/index.js";
 
     const router=Router()
 
@@ -20,7 +20,11 @@ import { localFileUpload } from "../../common/utils/multer/index.js";
 router.get("{/:userId/share-profile}",
     authentication(), authorization([RoleEnum.User, RoleEnum.Admin]),
     validation(validators.shareProfile), async (req, res, next) => {
-       const result = await shareProfile(req.user, req.params.userId)
+        // console.log({user : req.user, param : req.params.userId});
+        
+        const result = await shareProfile(req.user, req.params.userId)
+        // console.log(result);
+        
        return successResponse(res, 200, { result })
 })
 
@@ -31,10 +35,10 @@ router.get("/rotate-token" ,authentication(TokenTypeEnum.REFRESH), authorization
 })
 
 
-router.patch("/profile-image", authentication(), authorization([RoleEnum.User]), localFileUpload.single("attachement"), async (req, res, next) => {
-    const result = await AddProfileImage(req.user, req.file);
-    return successResponse(res, 200, { result });
-});
+// router.patch("/profile-image", authentication(), authorization([RoleEnum.User]), localFileUpload.single("attachement"), async (req, res, next) => {
+//     const result = await AddProfileImage(req.user, req.file);
+//     return successResponse(res, 200, { result });
+// });
 
 export default router
 

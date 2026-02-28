@@ -19,76 +19,67 @@ import { RoleEnum } from "../../common/enums/user.enum.js";
 // };
 
 
-
 export const shareProfile = async (viewer, userId) => {
+  const profileId = userId ?? viewer._id;
 
-  const id = userId ?? viewer._id
   const profile = await findOne({
     model: userModel,
-    filter: {_id: id},
+    filter: { _id: profileId },
     select: "firstName lastName email phone",
-    options:{lean:true}
-    
+    options: { lean: true },
   });
 
-  if(profile.phone){
-    profile.phone = await decrypt(profile.phone);
-  }
-  
-  if(!profile){
+  if (!profile) {
     throw notFoundException("User not found");
   }
 
+  if (profile.phone) {
+    profile.phone = await decrypt(profile.phone);
+  }
 
-  const viewerId = viewer._id
-  const profileId = userId
+  const viewerId = viewer._id;
 
-  //   const checkViewer = await findOne({
-  //   model: profileViewModel,
-  //   filter: {viewerId: viewerId, profileId: profileId},
-  // });
+  if (viewerId === profileId) {
+    const countViewers = await profileViewModel.countDocuments({
+      profileId: profileId,
+    });
 
-  // ====== Index
+    profile.views = countViewers;
+    return profile;
+  }
 
-
-  if (viewerId !== profileId) {
+  if (viewer.role !== RoleEnum.Admin) {
     try {
-      const profileViews = await createOne({
+      await createOne({
         model: profileViewModel,
-        data: [{viewerId: viewerId, profileId: profileId}],
+        data: [{ viewerId, profileId }],
       });
     } catch (error) {
-      return true 
+      // duplicate key error 
     }
-    
-  }
-  
-  if (!userId || viewerId === profileId) {
-    const countViewers = await profileViewModel.countDocuments({profileId: profileId})
-    profile.views = countViewers
+
     return profile;
   }
 
-  if(viewer.role === RoleEnum.Admin){
-    const viewers = await find({
-      model: profileViewModel,
-      filter: { profileId: profileId },
-      select: "viewerId",
-      options: {
-        populate: { path: "viewerId", select: "username email phone" },
-        lean: true
-      }
-    })
-    viewers.map(async viewer => {
-      viewer.viewerId.phone = await decrypt(viewer.viewerId.phone)
-    })
-    profile.views = viewers
-    return profile;
+  const viewers = await find({
+    model: profileViewModel,
+    filter: { profileId },
+    select: "viewerId",
+    options: {
+      populate: { path: "viewerId", select: "username email phone" },
+      lean: true,
+    },
+  });
+
+  for (const viewer of viewers) {
+    if (viewer.viewerId.phone) {
+      viewer.viewerId.phone = await decrypt(viewer.viewerId.phone);
+    }
   }
 
+  profile.views = viewers;
   return profile;
 };
-
 
 
 export const rotateToken = async (user, issuer) => {
