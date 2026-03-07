@@ -72,7 +72,7 @@ export const create = async ({
   model,
   data,
   options = {
-    validateBeeforeSave: true,
+    validateBeforeSave: true,
   },
 }) => {
   return await model.create(data, options);

@@ -45,7 +45,7 @@ export const checkValidOtp = async (key, otp) => {
     throw notFoundException("OTP expired");
   }
   if (!(await compareHash(`${otp}`, hashOtp))) {
-    return conflictException({ message: "Invalid OTP" });
+    throw conflictException({ message: "Invalid OTP" });
   }
   return true;
 };
@@ -97,7 +97,7 @@ const generateConfirmEmailOtp = async (email) => {
     //   html: emailTemplate({ code, title: "Confirm_Email" }),
     // });
 
-   emailEmitter.emit("confirm-email", { to: email, code, title:"Confirm_Email" });
+   emailEmitter.emit("confirm-email", { to: email, code, title: "Confirm_Email" });
     return;
 };
 
@@ -118,7 +118,7 @@ export const signup = async (inputs) => {
   // console.log(checkUserExist);
 
   if (checkUserExist) {
-    return conflictException({message : "Email already exists"});
+    throw conflictException({message : "Email already exists"});
   }
 
   // const otp = generateOTP();
@@ -204,7 +204,7 @@ export const resendOtp = async (inputs) => {
   // console.log(user);
 
   if (user.isVerified) {
-    return conflictException({message: "Email already verified"});
+    throw conflictException({message: "Email already verified"});
   }
 
   const remainingTime= await ttl(otpKey({ email })) ;
@@ -257,7 +257,7 @@ export const signupGmail = async (idToken, issuer) => {
 
   if (checkUser) {
     if (checkUser.provider !== ProviderEnum.Google) {
-      return conflictException("Account already exists with different provider");
+      throw conflictException("Account already exists with different provider");
     } else {
       const account = await loginGmail({idToken}, issuer);
       return {account , status:200}
@@ -290,7 +290,7 @@ export const login = async (inputs, issuer) => {
   if (await get(bannedAccountKey(email))) {
     const remainingBlockTime = await ttl(bannedAccountKey(email));
     console.log(remainingBlockTime);
-    return conflictException({
+    throw conflictException({
       message: `You have reached max login trial count, your account is temporarily banned. Please try again after ${remainingBlockTime} seconds`,
     });
   }
@@ -305,7 +305,7 @@ export const login = async (inputs, issuer) => {
       value: 1,
       ttl: 300, // seconds
     });
-    return conflictException({
+    throw conflictException({
       message: `You have reached max login trial count, your account is temporarily banned. Please try again after 5 minutes`,
     });
   }
@@ -338,7 +338,7 @@ export const login = async (inputs, issuer) => {
     return notFoundException("Invalid login credentials");
   }
 
-    if (
+  if (
       user.twoStepVerification &&
       user.twoStepVerification < Date.now() - 24 *60* 60 * 1000
     ) {
@@ -346,7 +346,7 @@ export const login = async (inputs, issuer) => {
       throw conflictException({
         message: "An OTP has been sent to your email",
       });
-    }
+  }
 
   await deleteKey([maxLoginTrialsKey(email), bannedAccountKey(email)]);
 

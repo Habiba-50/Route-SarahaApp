@@ -1,6 +1,6 @@
 import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from "../../../config/config.service.js"
 import { AudienceEnum, LogoutEnum, TokenTypeEnum } from "../../common/enums/security.enum.js";
-import { conflictException, createLoginCredentials, decrypt, generateToken, getTokenSignature, notFoundException } from "../../common/utils/index.js";
+import { compareHash, conflictException, createLoginCredentials, decrypt, generateToken, getTokenSignature, notFoundException } from "../../common/utils/index.js";
 import { createOne, deleteMany, findById, findOne } from "../../DB/db.service.js";
 import {  userModel } from "../../DB/index.js";
 import Path from "path";
@@ -167,7 +167,8 @@ export const rotateToken = async (user, {sub ,jti , iat} , issuer) => {
 // -----------------------------Update password-----------------------------
 
 export const updatePassword = async (user, { newPassword }) => { 
-  if(newPassword === user.password){
+  const newPassword = await generateHash(newPassword);
+  if(await compareHash(newPassword, user.password)){
     throw conflictException({message: "New password cannot be the same as the old password"})
   }
   user.password = newPassword;
