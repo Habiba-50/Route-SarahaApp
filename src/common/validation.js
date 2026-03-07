@@ -26,7 +26,7 @@ export const generalValidationFields = {
     password: joi.string()
               .pattern(new RegExp(/^(?=.*[a-z]){1,}(?=.*[A-Z]){1,}(?=.*\d){1,}(?=.*\W)[\w\W\d].{8,25}$/)),
     
-  id: joi.string().custom((value, helper) => {
+    id: joi.string().custom((value, helper) => {
     return Types.ObjectId.isValid(value) ? value : helper.message("Invalid user ID")
   }),
 
@@ -46,7 +46,9 @@ export const generalValidationFields = {
           size: joi.number().required(),
         })
         
-    } 
+    } ,
+
+  otp: joi.string().pattern(new RegExp(/^\d{6}$/)),
       
     
 }

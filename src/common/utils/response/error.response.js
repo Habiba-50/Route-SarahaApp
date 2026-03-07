@@ -38,26 +38,26 @@ export const ErrorException = ({ message = "Error", status = 400 , extra = undef
 
 // 1
 export const notFoundException = (message = "Not Found Exception",status = 404, extra = undefined  ) => {
-  return ErrorException({ message, status, extra  });
+  ErrorException({ message, status, extra  });
 };
 
 
 // 2
 export const unauthorizedException = ({ message = "Unauthorized Exception", extra = undefined } = {}) => {
-  return ErrorException({ message, status: 401, extra  });
+  ErrorException({ message, status: 401, extra  });
 }
 
 // 3
 export const badRequestException = ({ message = "Bad Request Exception", extra = undefined } = {}) => {
-  return ErrorException({ message, status: 400, extra  });
+  ErrorException({ message, status: 400, extra  });
 }
 
 //4
 export const forbiddenException = ({ message = "Forbidden Exception", extra = undefined } = {}) => {
-  return ErrorException({ message, status: 403, extra  });
+  ErrorException({ message, status: 403, extra  });
 }
 
 //5
-export const conflictException = (message = "Conflict Exception", extra ={} ) => {
-  return ErrorException({ message, status: 409, extra  });
+export const conflictException = ({message = "Conflict Exception", extra }={} ) => {
+  ErrorException({ message, status: 409, extra  });
 }

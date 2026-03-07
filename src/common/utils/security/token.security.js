@@ -4,8 +4,9 @@ import { RoleEnum } from "../../enums/index.js";
 import { AudienceEnum, TokenTypeEnum } from "../../enums/security.enum.js";
 import { badRequestException, notFoundException, unauthorizedException } from "../response/error.response.js";
 import { findById, findOne } from "../../../DB/db.service.js";
-import { tokenModel, userModel } from "../../../DB/index.js";
+import { redisClient, userModel } from "../../../DB/index.js";
 import {randomUUID} from "node:crypto"
+import { revokeTokenKey } from "../../services/index.js";
 
 export const generateToken = async ({
     payload = {},
@@ -96,7 +97,7 @@ export const decodeToken = async (token, allowedTokenType = []) => {
     throw notFoundException( "Invalid token type")
   }
 
-  if (decoded.jti && await findOne({ model: tokenModel, filter: { jti: decoded.jti } })) {
+  if (decoded.jti && await redisClient.get(revokeTokenKey(decoded.sub, decoded.jti))) {
     throw unauthorizedException({message: "Invalid login session"})
   }
   let signature = undefined;
@@ -129,7 +130,7 @@ export const decodeToken = async (token, allowedTokenType = []) => {
   if (
     user.changeCredentialsTime &&
     user.changeCredentialsTime?.getTime() > decoded.iat * 1000) {
-    throw unauthorizedException("Invalid login session");
+    throw unauthorizedException({message: "Invalid login session"});
   }
 
     return {user,decoded};

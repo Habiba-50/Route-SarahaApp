@@ -23,3 +23,11 @@ export const profileCoverImage = {
     .max(5)
     .required(),
 };
+
+
+export const password = {
+  body: joi
+    .object().keys({
+      newPassword: generalValidationFields.password.required()
+    })
+}

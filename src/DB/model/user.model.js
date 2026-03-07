@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       unique: true,
     },
+
     password: {
       type: String,
       required: function () {
@@ -50,17 +51,20 @@ const userSchema = new mongoose.Schema(
     },
 
     profilePic: [String],
+    
     profileCoverPic: [String],
 
-    gallery: [ String ],
+    gallery: [String],
 
     confirmEmail: Date,
 
-    changeCredentialsTime:Date,
+    changeCredentialsTime: Date,
 
-    isVerified: { type: Boolean, default: false },
-    otpCode: String,
-    otpExpiresAt: Date,
+    isVerified: { type: Date },
+    // otpCode: String,
+    // otpExpiresAt: Date,
+
+    twoStepVerification: { type: Date }
   },
   {
     collection: "users",
@@ -82,6 +86,14 @@ userSchema
   .get(function () {
     return this.firstName + " " + this.lastName;
   });
+
+userSchema.index(
+  { createdAt: 1 },
+  {
+    expireAfterSeconds: 24 * 60 * 60,
+    partialFilterExpression: { isVerified: null },
+  },
+);
 
 export const userModel =
   mongoose.models.User || mongoose.model("User", userSchema);

@@ -2,12 +2,23 @@ import { ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from "../../../config/confi
 import { AudienceEnum, LogoutEnum, TokenTypeEnum } from "../../common/enums/security.enum.js";
 import { conflictException, createLoginCredentials, decrypt, generateToken, getTokenSignature, notFoundException } from "../../common/utils/index.js";
 import { createOne, deleteMany, findById, findOne } from "../../DB/db.service.js";
-import { tokenModel, userModel } from "../../DB/index.js";
+import {  userModel } from "../../DB/index.js";
 import Path from "path";
 import fs from "fs";
+import { baseRevokeTokenKey, deleteKey, keys, revokeTokenKey, set } from "../../common/services/index.js";
 
 
-export const logout = async ({flag}, user, {jti , iat}) => { 
+const createRevokeToken = async ({sub, jti, ttl}) => {
+  await set({
+    key: revokeTokenKey({ userId:sub, jti }),
+    value: jti,
+    ttl
+  });
+}
+
+// -----------------------------Logout-----------------------------
+
+export const logout = async ({flag}, user, {jti , iat, sub}) => { 
   
   let status = 200
 
@@ -16,18 +27,17 @@ export const logout = async ({flag}, user, {jti , iat}) => {
       user.changeCredentialsTime = new Date();
       await user.save();
 
-      await deleteMany({model: tokenModel, filter: {userId: user._id}})
+      const result = await deleteKey(await keys(baseRevokeTokenKey({ userId: sub })));
+      console.log("Logout all sessions result:", result);
       break;
   
     default:
-      await createOne({
-        model: tokenModel,
-        data: [{
-          userId: user._id,
-          jti,
-          expiresIn: new Date(iat * 1000 + REFRESH_TOKEN_EXPIRY * 1000),
-        }]
-      })
+
+      await createRevokeToken({
+        userId: sub,
+        jti,
+        ttl: iat + REFRESH_TOKEN_EXPIRY,
+      });
       status = 201
       break;
   }
@@ -36,10 +46,16 @@ export const logout = async ({flag}, user, {jti , iat}) => {
   return status;
 }
 
+
+// -----------------------------Profile-----------------------------
+
 export const profile = async (user) => {
 
   return user;
 };
+
+
+// -----------------------------Profile Image-----------------------------
 
 export const profileImage = async (file, user) => {
   console.log(user.profilePic.length);
@@ -53,11 +69,17 @@ export const profileImage = async (file, user) => {
   }
 };
 
+
+// -----------------------------Profile Cover Image-----------------------------
+
 export const profileCoverImage = async (files , user) => {
   user.profileCoverPic = files.map(file => file.finalPath);
   await user.save();
   return user;
 };
+
+
+// -----------------------------Delete Profile Image----------------------------
 
 export const deleteProfileImage = async (user, body) => {
   const { imagePath } = body;
@@ -84,6 +106,9 @@ export const deleteProfileImage = async (user, body) => {
   return true;
 }
 
+
+// -----------------------------Upload profile image-----------------------------
+
 export const uploadProfileImage = async (file, user) => {
   if (user.profilePic.length >= 2) {
     throw conflictException("You can only upload 2 profile picture at max , please delete one of them to upload a new one");
@@ -96,7 +121,10 @@ export const uploadProfileImage = async (file, user) => {
   user.profilePic = [file.finalPath];
   await user.save();
   return user;
- }
+}
+ 
+
+// -----------------------------Share Profile-----------------------------
 
 export const shareProfile = async (userId) => {
   
@@ -116,29 +144,36 @@ export const shareProfile = async (userId) => {
   return profile;
 };
 
+// -----------------------------Rotate Token-----------------------------
 
-
-export const rotateToken = async (user, {jti , iat} , issuer) => {
+export const rotateToken = async (user, {sub ,jti , iat} , issuer) => {
 
   if ((iat + ACCESS_TOKEN_EXPIRY) * 1000 > Date.now() + ( 5 * 60 * 1000)) {
     throw conflictException("Current access token is still valid")
   }
-  await createOne({
-    model: tokenModel,
-    data: [
-      {
-        userId: user._id,
-        jti,
-        expiresIn: new Date(iat * 1000 + REFRESH_TOKEN_EXPIRY * 1000),
-      },
-    ],
-  });
+
+  await createRevokeToken({
+    userId: sub,
+    jti,
+    ttl: iat + REFRESH_TOKEN_EXPIRY
+  })
+ 
 
   const {access_token , refresh_token} = await createLoginCredentials({ user, issuer })
 
   return {access_token, refresh_token}
 };
 
+// -----------------------------Update password-----------------------------
+
+export const updatePassword = async (user, { newPassword }) => { 
+  if(newPassword === user.password){
+    throw conflictException({message: "New password cannot be the same as the old password"})
+  }
+  user.password = newPassword;
+  await user.save();
+  return user;
+}
 
 // export const AddProfileImage = async (user, file) => {
 //   const image = file.path;

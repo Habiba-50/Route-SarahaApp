@@ -2,7 +2,7 @@ import Joi from "joi";
 import { generalValidationFields } from "../../common/validation.js";
 
 
-const login = {
+export const login = {
   body: Joi.object()
     .keys({
       email: generalValidationFields.email.required(),
@@ -24,5 +24,27 @@ export const signup = {
 };
   
 
-  
+export const emailAndOTP = {
+  body: Joi.object().keys({
+    email: generalValidationFields.email.required(),
+    otp: generalValidationFields.otp.required(),
+  }),
+};  
+
+export const email = {
+  body: Joi.object().keys({
+    email: generalValidationFields.email.required(),
+  })
+}
+
+export const resetPassword = {
+  body: login.body
+    .append({
+      confirmPassword: generalValidationFields
+        .confirmPassword("password")
+        .required(),
+    })
+    .required(),
+};
+    
   

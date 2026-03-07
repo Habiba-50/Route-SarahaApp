@@ -181,43 +181,43 @@ export const findOneAndDelete = async ({
 
 
 // -----------------------------verifyEmail---------------------------------------
-export const toVerifyEmail = async (inputs) => {
-  const { email, otp } = inputs;
-  const user = await findOne({
-    model: userModel,
-    filter: { email },
-    select: "email otpCode otpExpiresAt isVerified",
-    options: {
-      lean: true
-    }
-  });
+// export const toVerifyEmail = async (inputs) => {
+//   const { email, otp } = inputs;
+//   const user = await findOne({
+//     model: userModel,
+//     filter: { email },
+//     select: "email otpCode otpExpiresAt isVerified",
+//     options: {
+//       lean: true
+//     }
+//   });
 
-  if (!user) {
-    return notFoundException("Email not found");
-  }
+//   if (!user) {
+//     return notFoundException("Email not found");
+//   }
 
-  console.log(otp,user.otpCode);
+//   console.log(otp,user.otpCode);
   
   
-  const matched = await compareHash(otp, user.otpCode);
-    if (!matched) {
-      return notFoundException("Invalid OTP");
-  }
+//   const matched = await compareHash(otp, user.otpCode);
+//     if (!matched) {
+//       return notFoundException("Invalid OTP");
+//   }
   
-  if (user.otpExpiresAt < Date.now() ) {
-    return notFoundException("OTP expired");
-  }
-  // user.isVerified = true;
-  // user.otpCode = null;
-  // user.otpExpiresAt = null;
+//   if (user.otpExpiresAt < Date.now() ) {
+//     return notFoundException("OTP expired");
+//   }
+//   // user.isVerified = true;
+//   // user.otpCode = null;
+//   // user.otpExpiresAt = null;
 
-  await userModel.updateOne({
-    isVerified: true,
-    otpCode: null,
-    otpExpiresAt: null
-  });
-  return user;
-};
+//   await userModel.updateOne({
+//     isVerified: true,
+//     otpCode: null,
+//     otpExpiresAt: null
+//   });
+//   return user;
+// };
 
 // ----------------------------Resend OTP--------------------------------
 
