@@ -142,8 +142,9 @@ router.post(
 
 
 // ----------------------------------Update Password---------------------------------------
-router.patch("/update-password", authentication(),validation(validators.password), async (req, res, next) => {
-  const account = await updatePassword(req.user, req.body);
+router.patch("/update-password", authentication(), validation(validators.password), async (req, res, next) => {
+  const {newPassword} = req.body;
+  const account = await updatePassword(req.user, newPassword);
   return successResponse(res, 200, undefined, "Password updated successfully" );
  });
 
