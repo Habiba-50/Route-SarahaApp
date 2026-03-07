@@ -167,7 +167,7 @@ export const rotateToken = async (user, {sub ,jti , iat} , issuer) => {
 // -----------------------------Update password-----------------------------
 
 export const updatePassword = async (user, newPassword) => { 
-  console.log(await compareHash(newPassword, user.password));
+ // console.log(await compareHash(newPassword, user.password));
   
   if(await compareHash(newPassword, user.password)){
     throw conflictException({message: "New password cannot be the same as the old password"})
