@@ -38,6 +38,7 @@ const checkOtpKey = async (key) => {
   
 }
 
+
 export const checkValidOtp = async (key, otp) => {
   const hashOtp = await get(key);
   if (!hashOtp) {
@@ -48,6 +49,7 @@ export const checkValidOtp = async (key, otp) => {
   }
   return true;
 };
+
 
 // -----------------------------Generate Confirm Email OTP-------------
 const generateConfirmEmailOtp = async (email) => {
@@ -98,6 +100,7 @@ const generateConfirmEmailOtp = async (email) => {
    emailEmitter.emit("confirm-email", { to: email, code, title:"Confirm_Email" });
     return;
 };
+
 
 // ----------------------------Signup--------------------------------
 
@@ -172,15 +175,8 @@ export const confirmEmail = async (inputs) => {
     throw conflictException("Email already verified");
   }
 
-  const hashOtp = await get(otpKey({ email }));
-  //  console.log(await get(otpKey({ email })));
+  await checkValidOtp( otpKey({ email }), otp)
 
-  if (!hashOtp) {
-    throw notFoundException("OTP expired");
-  }
-  if (!(await compareHash(`${otp}`, hashOtp))) {
-    return conflictException("Invalid OTP");
-  }
 
   user.isVerified = new Date();
   await user.save();
