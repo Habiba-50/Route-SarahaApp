@@ -27,13 +27,13 @@ import { deleteKey } from "../../common/services/redis.service.js";
 
 const router = Router();
 
-
  const loginLimiter = rateLimit({
     windowMs: 2 * 60 * 1000,
     limit: function limit(req) {
       // console.log(geoipLight.lookup(req.ip));
-      const countryIp = geoipLight.lookup(req.ip).country;
-      return countryIp === "EG" ? 5 : 0;
+      const geo = geoipLight.lookup(req.ip);
+      if (!geo) return 100; // Allow local/private IPs in development
+      return geo.country === "EG" ? 5 : 0;
     },
     legacyHeaders: true,
     standardHeaders: "draft-8",
@@ -54,11 +54,20 @@ const router = Router();
         // get called by express-rate-limit
         try {
           const count = await redisClient.incr(key);
-          if (count === 1) await redisClient.expire(key, 120); // 2 min TTL
-          return { totalHits: count, resetTime: undefined };
+          let ttl = 120; // 2 min TTL in seconds
+          if (count === 1) {
+            await redisClient.expire(key, ttl);
+          } else {
+            const currentTtl = await redisClient.ttl(key);
+            if (currentTtl > 0) {
+              ttl = currentTtl;
+            }
+          }
+          const resetTime = new Date(Date.now() + ttl * 1000);
+          return { totalHits: count, resetTime };
         } catch (err) {
           console.error("Redis Error:", err);
-          return { totalHits: 1, resetTime: undefined };
+          return { totalHits: 1, resetTime: new Date(Date.now() + 120 * 1000) };
         }
       },
 
@@ -75,9 +84,7 @@ const router = Router();
 
 
 
-
-
-  router.post("/signup",validation(validators.signup),async (req, res, next) => {
+router.post("/signup", validation(validators.signup), async (req, res, next) => {
     const account = await signup(req.body);
     return successResponse(res, 201, { account });
   },
@@ -138,7 +145,7 @@ router.post("/login/gmail", async (req, res, next) => {
   return successResponse(res, 201, { ...credentials });
 });
 
-
+// Forgot Password
 
 router.post("/forgot-password-otp", validation(validators.email), async (req, res, next) => {
     const { email } = req.body;

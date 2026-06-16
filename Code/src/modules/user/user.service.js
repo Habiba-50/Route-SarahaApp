@@ -58,15 +58,15 @@ export const profile = async (user) => {
 // -----------------------------Profile Image-----------------------------
 
 export const profileImage = async (file, user) => {
-  console.log(user.profilePic.length);
-  
-  if (user.profilePic.length < 2) {
-    user.profilePic.push(file.finalPath);
-    await user.save();
-    return user;
-  } else {
-    throw conflictException("You can only upload 2 profile picture at max , please delete one of them to upload a new one");
+
+
+  if (user.profilePic) {
+    user.gallery.push(user.profilePic);
   }
+
+  user.profilePic = file.finalPath;
+  await user.save();
+  return user;
 };
 
 
@@ -100,7 +100,7 @@ export const deleteProfileImage = async (user, body) => {
     fs.unlinkSync(fullPath);
   }
 
-  user.profilePic = user.profilePic.filter((img) => img !== imagePath);
+  user.profilePic = undefined;
   await user.save();
 
   return true;
@@ -109,19 +109,13 @@ export const deleteProfileImage = async (user, body) => {
 
 // -----------------------------Upload profile image-----------------------------
 
-export const uploadProfileImage = async (file, user) => {
-  if (user.profilePic.length >= 2) {
-    throw conflictException("You can only upload 2 profile picture at max , please delete one of them to upload a new one");
-  }
+// export const uploadProfileImage = async (file, user) => {
+//   // if (user.profilePic.length >= 1) {
+//   //   throw conflictException("You can only upload 2 profile picture at max , please delete one of them to upload a new one");
+//   // }
 
-  if (user.profilePic.length > 0) {
-    user.gallery.push(user.profilePic[0]);
-  }
-
-  user.profilePic = [file.finalPath];
-  await user.save();
-  return user;
-}
+  
+// }
  
 
 // -----------------------------Share Profile-----------------------------
@@ -149,7 +143,7 @@ export const shareProfile = async (userId) => {
 export const rotateToken = async (user, {sub ,jti , iat} , issuer) => {
 
   if ((iat + ACCESS_TOKEN_EXPIRY) * 1000 > Date.now() + ( 5 * 60 * 1000)) {
-    throw conflictException("Current access token is still valid")
+    throw conflictException({message:"Current access token is still valid"})
   }
 
   await createRevokeToken({

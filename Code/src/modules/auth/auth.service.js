@@ -10,18 +10,18 @@ import { bannedAccountKey, deleteKey, get, increment, keys, maxLoginTrialsKey, o
 import { EmailEnum } from "../../common/enums/email.enum.js";
 
 // -----------------------------Generate OTP-----------------------------
-// const generateAndSetOTP = async (key) => {
-//   const code = await createNumberOtp();
+const generateAndSetOTP = async (key) => {
+  const code = await createNumberOtp();
 
-//     // Save the encoded OTP with a short TTL
-//     await set({
-//       key: `${key}`,
-//       value: await generateHash(`${code}`),
-//       ttl: 120,
-//     });
+    // Save the encoded OTP with a short TTL
+    await set({
+      key: `${key}`,
+      value: await generateHash(`${code}`),
+      ttl: 120,
+    });
   
-//    return code
-// }
+   return code
+}
 
  
 const checkOtpKey = async (key) => {
@@ -77,7 +77,7 @@ const sendEmailOtp = async (email, type = EmailEnum.ConfirmEmail, title = "Verif
   }
 
 
-// Generate and Set OT P 
+// Generate and Set OTP 
   const code = await createNumberOtp();
 
   await set({
@@ -154,15 +154,18 @@ export const confirmEmail = async (inputs) => {
   const user = await findOne({
     model: userModel,
     filter: { email, provider: ProviderEnum.System },
-    select: "email isVerified",
+    select: "email isVerified firstName lastName",
   });
+
+  // console.log(user);
 
   if (!user) {
     throw notFoundException("Email not found");
   }
 
   if (user.isVerified) {
-    throw conflictException("Email already verified");
+    console.log(user.isVerified)
+    throw conflictException({message:"Email already verified"});
   }
 
   await checkValidOtp(otpKey({ email  , type: EmailEnum.ConfirmEmail}), otp)
@@ -184,7 +187,7 @@ export const resendOtp = async (inputs) => {
   const user = await findOne({
     model: userModel,
     filter: { email , provider: ProviderEnum.System },
-    select: "email isVerified",
+    select: "email isVerified firstName lastName",
 
   });
 
@@ -354,7 +357,7 @@ export const confirmationLogin = async (email, otp , issuer) => {
 
 // -----------------------------Login Gmail-------------------------------
 
- export const loginGmail = async (idToken, issuer) => {
+export const loginGmail = async (idToken, issuer) => {
 
   const payload = await verifyGoogleAccount(idToken)
 
@@ -396,7 +399,7 @@ export const forgetPassword = async (email) => {
 
 
 // 2 - Verify Forgot Password OTP
-export const verifyForgetPasswordOtp = async (email, type = EmailEnum.ForgotPassword ,  otp) => {
+export const verifyForgetPasswordOtp = async (email, otp, type = EmailEnum.ForgotPassword) => {
     await checkValidOtp(otpKey({ email, type }), otp);
 
 }
@@ -459,7 +462,13 @@ export const twoStepVerification = async (user) => {
 
   const code = await generateAndSetOTP(otp2sv(email));
 
-  emailEmitter.emit("send-email", user.email, code, EmailEnum.ConfirmEmail, "Verify_Account");
+  emailEmitter.emit("send-email", async () => {
+    await sendEmail({
+      to: email,
+      subject: "Verify_Account",
+      html: emailTemplate({ code, title: "Verify_Account" }),
+    });
+  });
 }
  
 export const verifyTwoStepVerification = async (user, otp) => { 

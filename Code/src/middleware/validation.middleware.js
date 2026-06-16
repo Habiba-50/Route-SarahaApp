@@ -15,14 +15,16 @@ export const validation = (schema) => {
         for (const key of keys) {
             const validationResult = schema[key].validate(req[key], { abortEarly: false });
             if (validationResult.error) {
+                console.log("Validation error", validationResult.error.details)
                 errors.push(...validationResult.error.details.map(detail => ({
                     message: detail.message,
-                    path: detail.path
+                    path: [key, ...detail.path]
                 })));
             }
         }
 
         if (errors.length > 0) {
+            console.log("Validation error", errors)
             return next(badRequestException({ message: "Validation error", extra: errors }));
         }
 

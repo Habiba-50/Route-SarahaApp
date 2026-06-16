@@ -6,5 +6,14 @@ node_modules/
 /Code/config/.env.production
 /Code/node_modules
 uploads/
+
 # /Code/config/.env.test
+
+
+
+
+
+
+
+
 

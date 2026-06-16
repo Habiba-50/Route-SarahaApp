@@ -15,8 +15,9 @@ async function bootstrap() {
   const limiter = rateLimit({
     windowMs: 2 * 60 * 1000,
     limit: function limit(req) {
-      const countryIp = geoipLight.lookup(req.ip).country;
-      return countryIp === "EG" ? 4 : 0;
+      const geo = geoipLight.lookup(req.ip);
+      if (!geo) return 100; // Allow local/private IPs in development
+      return geo.country === "EG" ? 4 : 0;
     },
     legacyHeaders: true,
     standardHeaders: "draft-8",
@@ -37,11 +38,20 @@ async function bootstrap() {
         // get called by express-rate-limit
         try {
           const count = await redisClient.incr(key);
-          if (count === 1) await redisClient.expire(key, 120); // 2 min TTL
-          return { totalHits: count, resetTime: undefined };
+          let ttl = 120; // 2 min TTL in seconds
+          if (count === 1) {
+            await redisClient.expire(key, ttl);
+          } else {
+            const currentTtl = await redisClient.ttl(key);
+            if (currentTtl > 0) {
+              ttl = currentTtl;
+            }
+          }
+          const resetTime = new Date(Date.now() + ttl * 1000);
+          return { totalHits: count, resetTime };
         } catch (err) {
           console.error("Redis Error:", err);
-          return { totalHits: 1, resetTime: undefined };
+          return { totalHits: 1, resetTime: new Date(Date.now() + 120 * 1000) };
         }
       },
 
@@ -56,7 +66,7 @@ async function bootstrap() {
     },
   });
     
-    app.set("trust proxy" , true)
+  app.set("trust proxy" , true)
 
   //convert buffer data
   app.use(cors(), helmet(), limiter, express.json());

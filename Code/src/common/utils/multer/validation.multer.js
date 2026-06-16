@@ -6,18 +6,16 @@ export const fileFieldValidation = {
 };
 
 export const fileFilter = (validation = []) => {
-   
-    return function (req, file, cb) {
-       console.log(file);
-    if (validation.includes(file.mimetype)) {
+  const flatValidation = validation.flat();
+  return function (req, file, cb) {
+    console.log(file);
+    if (flatValidation.includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(
-        new Error("Invalid file formate"),
-        { cause: { statusCode: 400 } },
+        new Error("Invalid file formate", { cause: { status: 400 } }),
         false,
       );
-      }
-     
+    }
   };
 };

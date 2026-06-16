@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema(
       default: RoleEnum.User,
     },
 
-    profilePic: [String],
+    profilePic: String,
     
     profileCoverPic: [String],
 
@@ -84,7 +84,10 @@ userSchema
     this.lastName = lastName;
   })
   .get(function () {
-    return this.firstName + " " + this.lastName;
+    if (this.firstName === undefined && this.lastName === undefined) {
+      return undefined;
+    }
+    return [this.firstName, this.lastName].filter(Boolean).join(" ");
   });
 
 userSchema.index(

@@ -17,7 +17,7 @@ export const sendMessage = async (receiverId, {content = undefined } = {}, files
     model: messageModel,
     data: [{
       content,
-      attachment: files.map((file) => file.finalPath),
+      attachment: files?.map((file) => file.finalPath) || [],
       receiverId,
       senderId: user? user._id : undefined
     }]

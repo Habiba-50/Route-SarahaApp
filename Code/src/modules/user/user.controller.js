@@ -8,7 +8,6 @@ import {
   rotateToken,
   shareProfile,
   updatePassword,
-  uploadProfileImage,
 } from "./user.service.js";
 import {
   authentication,
@@ -109,20 +108,20 @@ router.delete("/profile-image", authentication(), async (req, res, next) => {
 // -------------------------------Upload Image---------------------------------------------
 
 // Upload a new image and move the old one to gallery
-router.patch(
-  "/upload-profile-image",
-  authentication(),
-  localFileUpload({
-    customPath: "users/profile",
-    validation: [fileFieldValidation.image, fileFieldValidation.video],
-    maxSize: 5,
-  }).single("attachment"),
-  validation(validators.profileImage),
-  async (req, res, next) => {
-    const account = await uploadProfileImage(req.file, req.user);
-    return successResponse(res, 200, { account });
-  },
-);
+// router.patch(
+//   "/update-profile-image",
+//   authentication(),
+//   localFileUpload({
+//     customPath: "users/profile",
+//     validation: [fileFieldValidation.image, fileFieldValidation.video],
+//     maxSize: 5,
+//   }).single("attachment"),
+//   validation(validators.profileImage),
+//   async (req, res, next) => {
+//     const account = await uploadProfileImage(req.file, req.user);
+//     return successResponse(res, 200, { account });
+//   },
+// );
 
 // --------------------------------Rotate Token----------------------------------------------
 
